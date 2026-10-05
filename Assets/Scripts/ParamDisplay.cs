@@ -35,7 +35,7 @@ namespace Protobot {
             dropdown.onValueChanged.AddListener(index => {
                 OnUpdateValue?.Invoke(dropdown.options[index].text);
             });
-            
+
             // While the user is typing, only update the parameter value if the input
             // is a valid number. We do NOT clamp here — clamping on every keystroke
             // causes a bug where values like "12.2" are immediately cut to "12" because
@@ -44,7 +44,7 @@ namespace Protobot {
                 if (inputText.Length > 0 && float.TryParse(inputText, out _))
                     OnUpdateValue?.Invoke(inputText);
             });
-            
+
             // Once the user finishes editing (presses Enter or clicks away),
             // clamp the value to the allowed min/max range and refresh the display.
             customInput.onEndEdit.AddListener(inputText => {
@@ -107,7 +107,7 @@ namespace Protobot {
         private string ClampCustomInput(Parameter p, string value) {
             if (!float.TryParse(value, out float valueFloat))
                 return p.customDefault;
-            
+
             if (valueFloat > p.customLimits.y) return p.customLimits.y.ToString();
             if (valueFloat < p.customLimits.x) return p.customLimits.x.ToString();
 
@@ -123,6 +123,7 @@ namespace Protobot {
             int dir = (eventData.scrollDelta.y < 1) ? -1 : 1;
 
             if (parameter.custom) {
+                // Use TryParse to safely read the current value before adding scroll delta
                 if (!float.TryParse(parameter.value, out float currentVal)) return;
 
                 float newVal = currentVal + dir;
