@@ -2,19 +2,28 @@ using System;
 using UnityEngine;
 using Protobot.UI;
 
-namespace Protobot.SelectionSystem {
-    public class AddSelector : Selector {
+namespace Protobot.SelectionSystem
+{
+    public class AddSelector : Selector
+    {
         public override event Action<ISelection> setEvent;
-        public override event Action clearEvent;
-        
+        public override event Action clearEvent
+        {
+            add { }
+            remove { }
+        }
+
         [SerializeField] private AddPartsUI addPartsUI = null;
         private GameObject prevAddedObj = null;
-        
-        private void Update() {
+
+        private void Update()
+        {
             GameObject addedObj = addPartsUI.lastAddedObj;
 
-            if (addedObj != prevAddedObj) {
-                var selection = new ObjectSelection {
+            if (addedObj != prevAddedObj)
+            {
+                var selection = new ObjectSelection
+                {
                     gameObject = addedObj,
                     selector = this
                 };

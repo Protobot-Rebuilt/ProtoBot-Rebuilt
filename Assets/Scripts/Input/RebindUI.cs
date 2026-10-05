@@ -53,7 +53,7 @@ namespace Protobot.InputEvents {
                         | InputBinding.DisplayStringOptions.DontIncludeInteractions);
 
                     if (bindingString == "Control")
-                        bindingString = "Ctrl";
+                        bindingString = AppPlatform.OnMac ? "Cmd" : "Ctrl";
 
                     displayString += bindingString;
                 }

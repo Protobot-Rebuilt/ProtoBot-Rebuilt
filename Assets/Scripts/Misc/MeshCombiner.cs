@@ -4,16 +4,22 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Protobot {
-    public static class MeshCombiner {
+namespace Protobot
+{
+    public static class MeshCombiner
+    {
         private static Pivot pivot;
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Init() {
-            pivot = Pivot.Create("MeshCombiner Pivot");
+        private static void EnsureInitialized()
+        {
+            if (pivot == null)
+                pivot = Pivot.Create("MeshCombiner Pivot");
         }
 
-        public static Mesh CombineMeshes(List<GameObject> objs, Vector3 position, Quaternion rotation) {
+        public static Mesh CombineMeshes(List<GameObject> objs, Vector3 position, Quaternion rotation)
+        {
+            EnsureInitialized();
+
             pivot.SetPosition(position, false);
             pivot.transform.rotation = rotation;
 
@@ -23,14 +29,16 @@ namespace Protobot {
             pivot.transform.rotation = Quaternion.identity;
 
             List<MeshFilter> meshFilters = new List<MeshFilter>();
-            objs.ForEach(x => {
+            objs.ForEach(x =>
+            {
                 if (x.TryGetComponent(out MeshFilter meshFilter))
                     meshFilters.Add(meshFilter);
             });
 
             CombineInstance[] combine = new CombineInstance[meshFilters.Count];
 
-            for (int i = 0; i < meshFilters.Count; i++) {
+            for (int i = 0; i < meshFilters.Count; i++)
+            {
                 combine[i].mesh = meshFilters[i].sharedMesh.CombineSubmeshes();
                 combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
             }

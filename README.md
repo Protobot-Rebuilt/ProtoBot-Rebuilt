@@ -10,6 +10,8 @@ Video Guide:
 
 https://github.com/user-attachments/assets/7b37e938-61f8-463c-8c47-1981fb4ccd90
 
+## [Build Guide](Build.md)
+
 
 
 ## Contributing

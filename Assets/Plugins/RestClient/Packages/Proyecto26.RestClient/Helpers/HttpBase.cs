@@ -23,7 +23,7 @@ namespace Proyecto26
                         callback(null, response);
                         break;
                     }
-                    else if (!options.IsAborted && retries < options.Retries && request.isNetworkError)
+                    else if (!options.IsAborted && retries < options.Retries && request.result == UnityWebRequest.Result.ConnectionError)
                     {
                         yield return new WaitForSeconds(options.RetrySecondsDelay);
                         retries++;
@@ -61,7 +61,7 @@ namespace Proyecto26
 
         private static RequestException CreateException(RequestHelper options, UnityWebRequest request)
         {
-            return new RequestException(request.error, request.isHttpError, request.isNetworkError, request.responseCode, options.ParseResponseBody ? request.downloadHandler.text : "body not parsed");
+            return new RequestException(request.error, request.result == UnityWebRequest.Result.ProtocolError, request.result == UnityWebRequest.Result.ConnectionError, request.responseCode, options.ParseResponseBody ? request.downloadHandler.text : "body not parsed");
         }
 
         private static void DebugLog(bool debugEnabled, object message, bool isError)
@@ -82,7 +82,8 @@ namespace Proyecto26
 
         public static IEnumerator DefaultUnityWebRequest<TResponse>(RequestHelper options, Action<RequestException, ResponseHelper, TResponse> callback)
         {
-            return CreateRequestAndRetry(options, (RequestException err, ResponseHelper res) => {
+            return CreateRequestAndRetry(options, (RequestException err, ResponseHelper res) =>
+            {
                 var body = default(TResponse);
                 try
                 {
@@ -103,7 +104,8 @@ namespace Proyecto26
 
         public static IEnumerator DefaultUnityWebRequest<TResponse>(RequestHelper options, Action<RequestException, ResponseHelper, TResponse[]> callback)
         {
-            return CreateRequestAndRetry(options, (RequestException err, ResponseHelper res) => {
+            return CreateRequestAndRetry(options, (RequestException err, ResponseHelper res) =>
+            {
                 var body = default(TResponse[]);
                 try
                 {

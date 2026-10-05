@@ -23,16 +23,36 @@ namespace Protobot.InputEvents {
         public Action OnCancelRebind;
         
         public static bool Rebinding { get; private set; }
-        
-        private List<InputControl> IgnoredInputs => new() {
-            Keyboard.current.leftCtrlKey,
-            Keyboard.current.rightCtrlKey,
-            Keyboard.current.leftShiftKey,
-            Keyboard.current.rightShiftKey,
-            Keyboard.current.leftAltKey,
-            Keyboard.current.rightAltKey,
-            Mouse.current.leftButton
-        };
+
+        //Primary modifier: Command on Mac, Ctrl elsewhere
+        public static bool PrimaryModifierPressed =>
+            AppPlatform.OnMac
+                ? Keyboard.current.leftCommandKey.isPressed || Keyboard.current.rightCommandKey.isPressed
+                : Keyboard.current.ctrlKey.isPressed;
+
+        public static string PrimaryModifierPath =>
+            AppPlatform.OnMac ? "<Keyboard>/leftCommand" : "<Keyboard>/ctrl";
+
+        private List<InputControl> IgnoredInputs {
+            get {
+                var ignored = new List<InputControl> {
+                    Keyboard.current.leftCtrlKey,
+                    Keyboard.current.rightCtrlKey,
+                    Keyboard.current.leftShiftKey,
+                    Keyboard.current.rightShiftKey,
+                    Keyboard.current.leftAltKey,
+                    Keyboard.current.rightAltKey,
+                    Mouse.current.leftButton
+                };
+
+                if (AppPlatform.OnMac) {
+                    ignored.Add(Keyboard.current.leftCommandKey);
+                    ignored.Add(Keyboard.current.rightCommandKey);
+                }
+
+                return ignored;
+            }
+        }
         
         private InputControl CancelInput => Keyboard.current.escapeKey;
         
@@ -102,12 +122,14 @@ namespace Protobot.InputEvents {
             Keyboard curKeyboard = Keyboard.current;
 
             var modifiers = new List<ButtonControl> {
-                curKeyboard.ctrlKey,
                 curKeyboard.shiftKey,
                 curKeyboard.altKey,
             };
 
             var keyPaths = new List<string>();
+
+            if (PrimaryModifierPressed)
+                keyPaths.Add(PrimaryModifierPath);
 
             foreach (ButtonControl modifier in modifiers) {
                 if (modifier.isPressed) {
@@ -133,7 +155,15 @@ namespace Protobot.InputEvents {
             if (!IsEmpty) {
                 action.Enable();
 
-                action.LoadBindingOverridesFromJson(SavedRebinds);
+                string rebinds = SavedRebinds;
+
+                //translate ctrl-based rebinds to command on Mac
+                if (AppPlatform.OnMac)
+                    rebinds = rebinds.Replace("/ctrl\"", "/leftCommand\"")
+                                     .Replace("/leftCtrl\"", "/leftCommand\"")
+                                     .Replace("/rightCtrl\"", "/rightCommand\"");
+
+                action.LoadBindingOverridesFromJson(rebinds);
             }
 
             OnLoadRebinds?.Invoke(IsEmpty);

@@ -197,7 +197,7 @@ namespace Protobot.Builds {
         }
 
         /// <summary>
-        /// Loads an empty build with an untitled.pbb
+        /// Loads an empty build with an Untitled
         /// </summary>
         public void CreateNewBuild() {
             AttemptLoad(SceneBuild.DefaultBuild, "");

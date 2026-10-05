@@ -26,9 +26,9 @@ namespace Proyecto26.Common
         public static bool IsValidRequest(this UnityWebRequest request, RequestHelper options)
         {
             return request.isDone &&
-            !request.isNetworkError &&
+            request.result != UnityWebRequest.Result.ConnectionError &&
             (
-                !request.isHttpError || options.IgnoreHttpException
+                request.result != UnityWebRequest.Result.ProtocolError || options.IgnoreHttpException
             );
         }
 

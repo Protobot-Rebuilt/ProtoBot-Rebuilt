@@ -1,24 +1,36 @@
 ﻿using UnityEngine;
 
-namespace Protobot {
+namespace Protobot
+{
     [CreateAssetMenu(fileName = "New Hole Shapes")]
-    public class HoleShapes : ScriptableObject {
+    public class HoleShapes : ScriptableObject
+    {
         //Singleton set up
-        public static HoleShapes instance {get; private set;}
-        public HoleShapes() { 
-            instance = this;
+        private static HoleShapes _instance;
+        public static HoleShapes instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = Resources.Load<HoleShapes>("General Data/Hole Shapes");
+
+                return _instance;
+            }
+            private set => _instance = value;
         }
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Init() {
-            instance = (HoleShapes)Resources.LoadAll("General Data", typeof(HoleShapes))[0];
+        public HoleShapes()
+        {
+            instance = this;
         }
 
         //actual hole shape data
         public HoleShape[] shapeList;
 
-        public Mesh GetShapeMesh(string name) {
-            foreach (HoleShape shape in shapeList) {
+        public Mesh GetShapeMesh(string name)
+        {
+            foreach (HoleShape shape in shapeList)
+            {
                 if (name.ToLower().Contains(shape.shapeName.ToLower()))
                     return shape.shapeMesh;
             }
@@ -26,8 +38,10 @@ namespace Protobot {
             return null;
         }
 
-        public string GetShapeName(Mesh mesh) {
-            foreach (HoleShape shape in shapeList) {
+        public string GetShapeName(Mesh mesh)
+        {
+            foreach (HoleShape shape in shapeList)
+            {
                 if (shape.shapeMesh == mesh)
                     return shape.shapeName;
             }
@@ -37,7 +51,8 @@ namespace Protobot {
     }
 
     [System.Serializable]
-    public class HoleShape {
+    public class HoleShape
+    {
         public string shapeName;
         public Mesh shapeMesh;
     }

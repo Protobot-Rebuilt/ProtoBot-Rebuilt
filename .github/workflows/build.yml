@@ -1,32 +1,28 @@
-name: Unity Build
+name: ProtoBot Build
 
 on:
-  push:
-    branches:
-      - main
-      - 1.3.7
   workflow_dispatch:
 
 jobs:
   build-windows:
-    name: Build Windows
+    name: ProtoBot Windows
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           lfs: true
 
       - name: Cache Library
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Library
-          key: Library-Windows-${{ github.sha }}
+          key: Library-Windows-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-Windows-
 
       - name: Build Unity Project
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5.0.0
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -34,9 +30,88 @@ jobs:
         with:
           targetPlatform: StandaloneWindows64
           unityVersion: 2021.3.45f2
+          buildName: "ProtoBot Rebuilt"
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Install NSIS
+        run: sudo apt-get install -y nsis
+
+      - name: Create NSIS Installer
+        run: makensis installer.nsi
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v7
         with:
-          name: Build-StandaloneWindows64
-          path: build/StandaloneWindows64
+          name: ProtoBotRebuilt-Installer
+          path: ProtoBotRebuilt-Installer.exe
+
+  build-macos:
+    name: ProtoBot MacOS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Cache Library
+        uses: actions/cache@v6
+        with:
+          path: Library
+          key: Library-macOS-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-macOS-
+
+      - name: Build Unity Project
+        uses: game-ci/unity-builder@v5.0.0
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneOSX
+          unityVersion: 2021.3.45f2
+          buildName: "ProtoBot Rebuilt"
+
+      - name: Upload macOS Build
+        uses: actions/upload-artifact@v7
+        with:
+          name: Build-macOS-app
+          path: build/StandaloneOSX
+
+  package-macos-dmg:
+    name: ProtoBot macOS DMG
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - name: Download macOS Build
+        uses: actions/download-artifact@v8
+        with:
+          name: Build-macOS-app
+          path: build/StandaloneOSX
+
+      - name: Delete macOS Build Artifact
+        uses: geekyeggo/delete-artifact@v6
+        with:
+          name: Build-macOS-app
+
+      - name: Create DMG
+        run: |
+          TEMP_DIR=$(mktemp -d)
+          cp -r "build/StandaloneOSX/ProtoBot Rebuilt.app" "$TEMP_DIR/"
+          ln -s /Applications "$TEMP_DIR/Applications"
+
+          hdiutil create \
+            -volname "ProtoBot Rebuilt" \
+            -srcfolder "$TEMP_DIR" \
+            -ov \
+            -format UDBZ \
+            -imagekey bzip2-level=9 \
+            "ProtoBotRebuilt.dmg"
+
+          rm -rf "$TEMP_DIR"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v7
+        with:
+          name: ProtoBotRebuilt-macOS-DMG
+          path: ProtoBotRebuilt.dmg

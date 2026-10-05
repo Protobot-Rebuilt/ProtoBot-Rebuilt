@@ -16,7 +16,7 @@ namespace Protobot.SelectionSystem
         }
         public override void OnSet(ISelection sel)
         {
-            if (sel == null)  
+            if (sel == null)
                 return;
             ChangeColor(sel.gameObject);
         }
@@ -46,11 +46,11 @@ namespace Protobot.SelectionSystem
             {
                 if (component == null)
                     return;
-                if (component.material.GetFloat("_Metallic") == .754f)
+                if (RendererColorUtility.IsMetallicSelectable(component))
                 {
-                    ColorTool.Material = component.material;
+                    ColorTool.Material = component.sharedMaterial;
                     if (ColorToolActiveCheck.colorToolActive)
-                        component.material.color = ColorTool.ColorToSet;
+                        RendererColorUtility.SetTintColor(component, ColorTool.ColorToSet);
                 }
             }
         }

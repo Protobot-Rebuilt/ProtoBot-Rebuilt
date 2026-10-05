@@ -5,13 +5,17 @@ using System;
 using System.Linq;
 using UnityEditor;
 
-namespace Protobot.Builds {
-    public static class SceneBuild {
+namespace Protobot.Builds
+{
+    public static class SceneBuild
+    {
         public static Action<BuildData> OnGenerateBuild;
 
-        public static BuildData DefaultBuild => new BuildData {
+        public static BuildData DefaultBuild => new BuildData
+        {
             name = "DefaultBuild",
-            camera = new CameraData {
+            camera = new CameraData
+            {
                 xPos = 0,
                 yPos = 0,
                 zPos = 0,
@@ -27,7 +31,8 @@ namespace Protobot.Builds {
         /// <summary>
         /// Generates all the objects into the scene using given BuildData
         /// </summary>
-        public static void GenerateBuild(BuildData buildData) {
+        public static void GenerateBuild(BuildData buildData)
+        {
             Debug.Log("Generating a build with " +
                       (buildData.parts == null ? 0 : buildData.parts.Length) + " parts");
 
@@ -49,12 +54,15 @@ namespace Protobot.Builds {
                 projectionSwitcher.SwitchToPers(0);
 
             //Parts
-            if (buildData.parts != null) {
+            if (buildData.parts != null)
+            {
                 List<ObjectData> connectingObjects = new();
 
-                foreach (ObjectData part in buildData.parts) {
+                foreach (ObjectData part in buildData.parts)
+                {
                     if (part.partId == "Error") continue; //this is jank but I'm avoiding editing main scene
-                    if (PartsManager.GetPartType(part.partId).connectingPart) {
+                    if (PartsManager.GetPartType(part.partId).connectingPart)
+                    {
                         connectingObjects.Add(part);
                     }
                     else
@@ -65,7 +73,7 @@ namespace Protobot.Builds {
                     GenerateObject(part, buildData);
 
             }
-            
+
             OnGenerateBuild?.Invoke(buildData);
 
             if (AppPlatform.OnMac)
@@ -85,21 +93,22 @@ namespace Protobot.Builds {
         {
             GameObject generatedObject = PartsManager.GeneratePart(objectData.partId, objectData.GetPos(), objectData.GetRot());
             //there are only 2 versions of Protobot legacy publicly released that I could find most before Beta 1.3.1 are just guesses
-            string[] versionsNoColor = new string[] {"1.0", "1.1", "1.1.1", "Beta 1.2", "Beta 1.3", "Beta 1.3.1", "1.3.2", "1.3.3", "1.3.4" };
+            string[] versionsNoColor = new string[] { "1.0", "1.1", "1.1.1", "Beta 1.2", "Beta 1.3", "Beta 1.3.1", "1.3.2", "1.3.3", "1.3.4" };
             //Debug.Log(buildData.version);    
-            if(!versionsNoColor.Contains(buildData.version) && buildData.version != null)
-            { 
-                generatedObject.GetComponent<Renderer>().material.color = objectData.GetColor();
+            if (!versionsNoColor.Contains(buildData.version) && buildData.version != null)
+            {
+                RendererColorUtility.SetTintColor(generatedObject.GetComponent<Renderer>(), objectData.GetColor());
             }
             return generatedObject;
         }
-            
+
 
 
         /// <summary>
         /// Generates an empty build with default camera data into the scene
         /// </summary>
-        public static BuildData GenerateDefault(string buildName) {
+        public static BuildData GenerateDefault(string buildName)
+        {
             var newBuild = DefaultBuild;
             newBuild.name = buildName;
 
@@ -115,12 +124,14 @@ namespace Protobot.Builds {
         /// Converts scene objects into BuildData
         /// </summary>
         /// <remarks>Does not contain lastWriteTime, createTime, fileName, or name</remarks>
-        public static BuildData ToBuildData() {
+        public static BuildData ToBuildData()
+        {
             //Camera
             PivotCamera cam = PivotCamera.Main;
             ProjectionSwitcher projectionSwitcher = cam.GetComponent<ProjectionSwitcher>();
 
-            CameraData newCameraData = new CameraData {
+            CameraData newCameraData = new CameraData
+            {
                 xPos = cam.focusPosition.x,
                 yPos = cam.focusPosition.y,
                 zPos = cam.focusPosition.z,
@@ -139,14 +150,17 @@ namespace Protobot.Builds {
 
             ObjectData[] newParts = new ObjectData[sceneObjs.Count];
 
-            for (int i = 0; i < newParts.Length; i++) {
+            for (int i = 0; i < newParts.Length; i++)
+            {
                 Transform tForm = sceneObjs[i].transform;
                 SavedObject savedData = tForm.GetComponent<SavedObject>();
                 Renderer savedColor = tForm.GetComponent<Renderer>();
+                Color tintColor = RendererColorUtility.GetTintColor(savedColor);
 
                 var position = tForm.position;
                 var eulerAngles = tForm.eulerAngles;
-                newParts[i] = new ObjectData {
+                newParts[i] = new ObjectData
+                {
                     partId = savedData.id,
                     states = savedData.state,
 
@@ -158,14 +172,15 @@ namespace Protobot.Builds {
                     yRot = eulerAngles.y,
                     zRot = eulerAngles.z,
 
-                    rColor = savedColor.material.color.r,
-                    bColor = savedColor.material.color.b,
-                    gColor = savedColor.material.color.g,
+                    rColor = tintColor.r,
+                    bColor = tintColor.b,
+                    gColor = tintColor.g,
                 };
             }
 
 
-            return new BuildData {
+            return new BuildData
+            {
                 camera = newCameraData,
                 parts = newParts,
             };

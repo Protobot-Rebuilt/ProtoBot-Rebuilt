@@ -19,6 +19,21 @@ namespace Protobot.InputEvents {
         public void Awake() {
             //performed += () => Debug.Log("Performed " + name + " input event!");
 
+            //on Mac, default ctrl bindings become command bindings
+            if (AppPlatform.OnMac) {
+                for (int i = 0; i < defaultAction.bindings.Count; i++) {
+                    string path = defaultAction.bindings[i].path;
+                    if (string.IsNullOrEmpty(path)) continue;
+
+                    string macPath = path.Replace("/ctrl", "/leftCommand")
+                                         .Replace("/leftCtrl", "/leftCommand")
+                                         .Replace("/rightCtrl", "/rightCommand");
+
+                    if (macPath != path)
+                        defaultAction.ApplyBindingOverride(i, macPath);
+                }
+            }
+
             rebindAction = new RebindAction(name);
 
             rebindAction.OnCompleteRebind += () => defaultAction.Disable();

@@ -11,7 +11,7 @@ public class ColorTool : MonoBehaviour
     [SerializeField] public static List<Material> Materials = new();
     [SerializeField] List<Color> color;
     [SerializeField] GameObject custom;
-    [SerializeField] Slider red,green,blue;
+    [SerializeField] Slider red, green, blue;
     [SerializeField] Image preview;
     [SerializeField] public static Color ColorToSet;
     public static bool CustomColor;
@@ -47,13 +47,13 @@ public class ColorTool : MonoBehaviour
 
     public void UpdatePreview()
     {
-        preview.color = new Color(red.value/255,green.value/255,blue.value/255,1);
+        preview.color = new Color(red.value / 255, green.value / 255, blue.value / 255, 1);
     }
 
     public void UpdateColorSliders()
     {
-        red.value = Material.color.r * 255;
-        green.value = Material.color.g * 255;
-        blue.value = Material.color.b * 255;
+        red.value = ColorToSet.r * 255;
+        green.value = ColorToSet.g * 255;
+        blue.value = ColorToSet.b * 255;
     }
 }
